@@ -1,37 +1,30 @@
 'use client';
-
+import { Suspense } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
-
 type Status = 'loading' | 'success' | 'error';
-
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [courseId, setCourseId] = useState('');
   const called = useRef(false);
-
   useEffect(() => {
     if (called.current) return;
     called.current = true;
-
     const paymentKey = searchParams.get('paymentKey');
     const orderId = searchParams.get('orderId');
     const amount = searchParams.get('amount');
     const cid = searchParams.get('courseId');
-
     if (!paymentKey || !orderId || !amount) {
       setErrorMsg('잘못된 접근입니다.');
       setStatus('error');
       return;
     }
-
     if (cid) setCourseId(cid);
-
     fetch('/api/payments/confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,7 +36,6 @@ export default function PaymentSuccessPage() {
           const id = data.courseId ?? cid;
           setCourseId(id);
           setStatus('success');
-          // Auto-redirect after 3s
           setTimeout(() => router.push(`/courses/${id}/learn`), 3000);
         } else {
           setErrorMsg(data.error ?? '결제 처리 중 오류가 발생했습니다.');
@@ -55,7 +47,6 @@ export default function PaymentSuccessPage() {
         setStatus('error');
       });
   }, []);
-
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -67,7 +58,6 @@ export default function PaymentSuccessPage() {
       </div>
     );
   }
-
   if (status === 'error') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -89,7 +79,6 @@ export default function PaymentSuccessPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="card p-10 max-w-md w-full text-center">
@@ -102,13 +91,17 @@ export default function PaymentSuccessPage() {
           지금 바로 강의를 시작하세요!
         </p>
         <p className="text-sm text-gray-400 mb-8">3초 후 자동으로 이동합니다...</p>
-        <Link
-          href={`/courses/${courseId}/learn`}
-          className="btn-primary w-full justify-center text-base py-4"
-        >
+        <Link href={`/courses/${courseId}/learn`} className="btn-primary w-full justify-center text-base py-4">
           수강 시작하기
         </Link>
       </div>
     </div>
+  );
+}
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-14 h-14 text-blue-500 animate-spin" /></div>}>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
