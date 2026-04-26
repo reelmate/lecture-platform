@@ -1,0 +1,27 @@
+import { cn } from '@/lib/utils';
+
+interface Props {
+  value: number; // 0-100
+  className?: string;
+  showLabel?: boolean;
+}
+
+export default function ProgressBar({ value, className, showLabel = false }: Props) {
+  const clamped = Math.min(100, Math.max(0, value));
+
+  return (
+    <div className={cn('flex items-center gap-3', className)}>
+      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-500 rounded-full transition-all duration-500"
+          style={{ width: `${clamped}%` }}
+        />
+      </div>
+      {showLabel && (
+        <span className="text-xs font-medium text-gray-500 w-8 text-right">
+          {clamped}%
+        </span>
+      )}
+    </div>
+  );
+}
