@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'https', hostname: 'vz-**.b-cdn.net' },
@@ -8,5 +9,4 @@ const nextConfig = {
     ],
   },
 };
-
 export default nextConfig;
