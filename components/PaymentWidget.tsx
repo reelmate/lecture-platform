@@ -1,12 +1,9 @@
 'use client';
-
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { loadPaymentWidget, type PaymentWidgetInstance } from '@tosspayments/payment-widget-sdk';
 import { generateOrderId } from '@/lib/utils';
 import { formatPrice } from '@/lib/utils';
 import { Loader2, ShieldCheck } from 'lucide-react';
-
 interface Props {
   courseId: string;
   courseTitle: string;
@@ -14,26 +11,23 @@ interface Props {
   userId: string;
   userEmail: string;
 }
-
 const CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!;
-const SUCCESS_URL = `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`;
-const FAIL_URL = `${process.env.NEXT_PUBLIC_APP_URL}/payment/fail`;
-
+const SUCCESS_URL = process.env.NEXT_PUBLIC_APP_URL + '/payment/success';
+const FAIL_URL = process.env.NEXT_PUBLIC_APP_URL + '/payment/fail';
 export default function PaymentWidget({ courseId, courseTitle, amount, userId, userEmail }: Props) {
   const paymentWidgetRef = useRef<PaymentWidgetInstance | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [paying, setPaying] = useState(false);
   const orderId = useRef(generateOrderId(courseId));
-  const router = useRouter();
-
   useEffect(() => {
     async function initWidget() {
       try {
         const widget = await loadPaymentWidget(CLIENT_KEY, userId);
         paymentWidgetRef.current = widget;
-
         await widget.renderPaymentMethods('#payment-method', { value: amount });
         await widget.renderAgreement('#payment-agreement');
+        setReady(true);
       } catch (e) {
         console.error('결제 위젯 초기화 실패:', e);
       } finally {
@@ -42,26 +36,24 @@ export default function PaymentWidget({ courseId, courseTitle, amount, userId, u
     }
     initWidget();
   }, [amount, userId]);
-
   const handlePayment = async () => {
-    if (!paymentWidgetRef.current) return;
+    if (!paymentWidgetRef.current || !ready) {
+      alert('결제 위젯이 아직 준비 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
     setPaying(true);
-
     try {
-      // Create pending order first
       const prepareRes = await fetch('/api/payments/prepare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ courseId, orderId: orderId.current, amount }),
       });
-
       if (!prepareRes.ok) {
         const err = await prepareRes.json();
         alert(err.error ?? '주문 생성에 실패했습니다.');
         setPaying(false);
         return;
       }
-
       await paymentWidgetRef.current.requestPayment({
         orderId: orderId.current,
         orderName: courseTitle,
@@ -77,7 +69,6 @@ export default function PaymentWidget({ courseId, courseTitle, amount, userId, u
       setPaying(false);
     }
   };
-
   return (
     <div className="space-y-4">
       {loading && (
@@ -85,14 +76,12 @@ export default function PaymentWidget({ courseId, courseTitle, amount, userId, u
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       )}
-
       <div id="payment-method" className={loading ? 'hidden' : ''} />
       <div id="payment-agreement" className={loading ? 'hidden' : ''} />
-
       {!loading && (
         <button
           onClick={handlePayment}
-          disabled={paying}
+          disabled={paying || !ready}
           className="btn-primary w-full text-base py-4 gap-2"
         >
           {paying ? (
@@ -102,7 +91,6 @@ export default function PaymentWidget({ courseId, courseTitle, amount, userId, u
           )}
         </button>
       )}
-
       <p className="text-center text-xs text-gray-400">
         결제 완료 즉시 수강이 가능합니다 · 토스페이먼츠 보안 결제
       </p>
