@@ -32,7 +32,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
-          <Image src="/logo.png.png" alt="릴메이트 로고" width={32} height={32} className="rounded" />
+          <Image src="/logo.png" alt="릴메이트 로고" width={32} height={32} className="rounded" />
           릴메이트
         </Link>
 
