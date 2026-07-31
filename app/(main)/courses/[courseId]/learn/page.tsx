@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import VideoPlayer from '@/components/VideoPlayer';
+// import VideoPlayer from '@/components/VideoPlayer';
 import ProgressBar from '@/components/ProgressBar';
 import { CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
@@ -110,11 +110,11 @@ export default function LearnPage({ params }: Props) {
 
         <div className="flex-1 p-4 lg:p-8">
           <div className="max-w-4xl mx-auto">
-            <VideoPlayer
+            {/* <VideoPlayer
               key={currentLesson.id}
               lessonId={currentLesson.id}
               title={currentLesson.title}
-            />
+            /> */}
             <div className="mt-6 flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-xl font-bold text-white">{currentLesson.title}</h1>
